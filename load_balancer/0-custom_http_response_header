@@ -1,40 +1,15 @@
 #!/usr/bin/env bash
-# a script to install nginx web server & make the following configurations:
+# Configures Nginx to include a custom HTTP header with the hostname
 
-apt-get update
+# Install Nginx if not already installed
+apt-get update -y
 apt-get install -y nginx
 
-mkdir /etc/nginx/html
+# Get the server's hostname
+hostname_value=$(hostname)
 
-touch /etc/nginx/html/index.html
+# Add custom header to Nginx default configuration
+sed -i "/listen 80 default_server;/a \\tadd_header X-Served-By \"$hostname_value\";" /etc/nginx/sites-available/default
 
-
-echo "Holberton School" > /etc/nginx/html/index.html
-
-# Create custom 404 error page
-echo "<!DOCTYPE html>
-<html>
-<head>
-  <title>404 Not Found</title>
-</head>
-<body>
-  <h1>404 Not Found</h1>
-  <p>Ceci n'est pas une page</p>
-</body>
-</html>" | sudo tee /var/www/html/404.html >/dev/null
-
-printf %s "server {
-     listen      80 default_server;
-     listen      [::]:80 default_server;
-     root        /etc/nginx/html;
-     index       index.html index.htm;
-     add_header X-Served-By $HOSTNAME;
-     error_page 404 /404.html;
-     location /404 {
-        root /etc/nginx/html;
-        internal;
-     }
-}
-" > /etc/nginx/sites-available/default
-
-service nginx restart
+# Restart Nginx to apply changes
+systemctl restart nginx
