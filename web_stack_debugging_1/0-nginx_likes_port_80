@@ -1,26 +1,16 @@
 #!/usr/bin/env bash
-# Configures Nginx server to listen on port 80
+# Configures Nginx to listen on port 80
 
-# Install nginx if it is not installed
-apt-get update -y
-apt-get install -y nginx
+# Remove default site if it has issues and ensure proper configuration
+rm -f /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Force nginx to listen on port 80 by recreating the default server block
-cat >/etc/nginx/sites-available/default << 'EOF'
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
+# Ensure Nginx is configured to listen on port 80
+sed -i 's/listen 8080 default_server;/listen 80 default_server;/g' /etc/nginx/sites-available/default
+sed -i 's/listen \[::\]:8080 default_server;/listen [::]:80 default_server;/g' /etc/nginx/sites-available/default
 
-    root /var/www/html;
-    index index.html index.htm;
+# Kill any process that might be blocking port 80
+fuser -k 80/tcp 2>/dev/null || true
 
-    server_name _;
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-EOF
-
-# Restart nginx
+# Restart Nginx service
 service nginx restart
