@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
-# Run the whoami command as another user
-su - "$1" -c "whoami"
-
+# a Bash script that accepts one argument
+sudo -u "$1" whoami
